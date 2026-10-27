@@ -77,13 +77,17 @@ def get_user_chunks(user_id: int) -> list[tuple[str, str]]:
     return [
         (str(metadata["filename"]), text)
         for text, metadata in zip(documents, metadatas)
-        if text is not None and metadata is not None
+        if (
+            text is not None
+            and metadata is not None
+            and metadata.get("user_id") == user_id
+        )
     ]
 
 
 def search_chunks(user_id: int, question: str, limit: int = 5) -> list[tuple[str, str, float]]:
     collection = _get_collection()
-    item_count = collection.count()
+    item_count = collection.count(where={"user_id": user_id})
     if item_count == 0:
         return []
 

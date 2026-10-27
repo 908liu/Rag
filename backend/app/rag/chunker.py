@@ -48,62 +48,58 @@ def _content_type(text: str) -> str:
     return "paragraph"
 
 
-def split_document(filename: str, text: str) -> list[DocumentChunk]:
-    extension = Path(filename).suffix.lower()
+def _append_chunk(
+    chunks: list[DocumentChunk],
+    chunk_text: str,
+    section_path: str = "",
+    page_number: int = 0,
+) -> None:
+    context = f"[章节: {section_path}]\n" if section_path else ""
+    page_context = f"[PDF 第 {page_number} 页]\n" if page_number else ""
+    chunks.append({
+        "text": page_context + context + chunk_text,
+        "chunk_index": len(chunks),
+        "chunking_version": CHUNKING_VERSION,
+        "page_start": page_number,
+        "page_end": page_number,
+        "section_path": section_path,
+        "content_type": _content_type(chunk_text),
+    })
+
+
+def _split_markdown(text: str, page_number: int = 0) -> list[DocumentChunk]:
     chunks: list[DocumentChunk] = []
+    sections = MarkdownNodeParser().get_nodes_from_documents([LlamaDocument(text=text)])
+    for section in sections:
+        section_text = section.text.strip()
+        section_lines = section_text.splitlines()
+        heading_match = (
+            re.match(r"^#{1,6}\s+(.+)$", section_lines[0].strip())
+            if section_lines else None
+        )
+        heading = heading_match.group(1).strip() if heading_match else ""
+        body = "\n".join(section_lines[1:]).strip() if heading_match else section_text
+        parent_path = section.metadata.get("header_path", "").strip("/")
+        section_path = "/".join(part for part in (parent_path, heading) if part)
+        for chunk_text in _sentence_chunks(body):
+            _append_chunk(chunks, chunk_text, section_path, page_number)
+    return chunks
 
-    if extension == ".md":
-        sections = MarkdownNodeParser().get_nodes_from_documents([LlamaDocument(text=text)])
-        for section in sections:
-            section_text = section.text.strip()
-            section_lines = section_text.splitlines()
-            heading_match = (
-                re.match(r"^#{1,6}\s+(.+)$", section_lines[0].strip())
-                if section_lines else None
-            )
-            heading = heading_match.group(1).strip() if heading_match else ""
-            body = "\n".join(section_lines[1:]).strip() if heading_match else section_text
-            parent_path = section.metadata.get("header_path", "").strip("/")
-            section_path = "/".join(part for part in (parent_path, heading) if part)
-            for chunk_text in _sentence_chunks(body):
-                context = f"[章节: {section_path}]\n" if section_path else ""
-                chunks.append({
-                    "text": context + chunk_text,
-                    "chunk_index": len(chunks),
-                    "chunking_version": CHUNKING_VERSION,
-                    "page_start": 0,
-                    "page_end": 0,
-                    "section_path": section_path,
-                    "content_type": _content_type(chunk_text),
-                })
-        return chunks
 
-    if extension == ".pdf":
-        for page_number, page_text in enumerate(text.split("\f"), start=1):
-            for chunk_text in _sentence_chunks(page_text):
-                chunks.append({
-                    "text": f"[PDF 第 {page_number} 页]\n{chunk_text}",
-                    "chunk_index": len(chunks),
-                    "chunking_version": CHUNKING_VERSION,
-                    "page_start": page_number,
-                    "page_end": page_number,
-                    "section_path": "",
-                    "content_type": _content_type(chunk_text),
-                })
-        return chunks
+def split_document(filename: str, text: str) -> list[DocumentChunk]:
+    """Split normalized Markdown; filename is retained for compatibility."""
+    del filename
+    pages = text.split("\f")
+    if len(pages) == 1:
+        return _split_markdown(text)
 
-    for chunk_text in _sentence_chunks(text):
-        chunks.append({
-            "text": chunk_text,
-            "chunk_index": len(chunks),
-            "chunking_version": CHUNKING_VERSION,
-            "page_start": 0,
-            "page_end": 0,
-            "section_path": "",
-            "content_type": _content_type(chunk_text),
-        })
+    chunks: list[DocumentChunk] = []
+    for page_number, page_text in enumerate(pages, start=1):
+        for chunk in _split_markdown(page_text, page_number):
+            chunk["chunk_index"] = len(chunks)
+            chunks.append(chunk)
     return chunks
 
 
 def split_text(text: str) -> list[str]:
-    return [chunk["text"] for chunk in split_document("document.txt", text)]
+    return [chunk["text"] for chunk in _split_markdown(text)]
