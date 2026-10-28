@@ -243,6 +243,102 @@
     font-size:12px;color:var(--sub);padding:0 6px;outline:none;
   }
 
+  .dashboard-home{display:none;flex:1;overflow:auto;background:#fff;padding:42px 48px}
+  .dashboard-home-inner{max-width:920px;margin:0 auto}
+  .breadcrumb{display:flex;align-items:center;gap:10px;color:#8a96a7;font-size:12px;margin-bottom:32px}
+  .breadcrumb strong{color:#273348;font-weight:600}
+  .dashboard-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:27px 30px;margin-bottom:30px;border-radius:12px;background:linear-gradient(110deg,#f5f8fc,#eef3f8);border:1px solid #edf1f5}
+  .dashboard-hero h1{margin:0 0 8px;color:#2f67e8;font-size:27px;line-height:1.2;letter-spacing:-.7px}
+  .dashboard-hero p{max-width:570px;margin:0;color:#526176;line-height:1.7;font-size:13px}
+  .dashboard-hero .btn{flex:none;padding:0 17px;border-radius:18px}
+  .dashboard-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:30px}
+  .dashboard-stat{min-height:110px;padding:24px;border:1px solid #e3e9f1;border-radius:11px;background:#fff;display:flex;align-items:center;gap:17px}
+  .stat-icon,.action-icon{width:44px;height:44px;display:grid;place-items:center;flex:none;border-radius:50%;font-size:21px}
+  .stat-icon.blue{background:#e2edff;color:#2f67e8}.stat-icon.indigo{background:#e9eaff;color:#5968e8}
+  .dashboard-stat strong{display:block;color:#182237;font-size:27px;line-height:1;margin-bottom:7px}.dashboard-stat span{color:#718096;font-size:12px}
+  .dashboard-section-title{margin:0 0 15px;color:#202b3d;font-size:17px}
+  .dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:32px}
+  .dashboard-action{min-height:146px;padding:22px 16px;border:1px solid #e3e9f1;border-radius:10px;background:#fff;text-align:center;cursor:pointer;transition:.15s}
+  .dashboard-action:hover{border-color:#9bb8f4;box-shadow:0 5px 16px rgba(47,103,232,.08);transform:translateY(-1px)}
+  .dashboard-action h3{margin:12px 0 6px;color:#263247;font-size:13px}.dashboard-action p{margin:0;color:#7a8798;font-size:11px;line-height:1.5}
+  .action-icon.blue{background:#e2edff;color:#2f67e8}.action-icon.indigo{background:#e7ebff;color:#5a68e8}.action-icon.purple{background:#f1e7ff;color:#9a52dc}
+  .dashboard-guide{padding:22px;border:1px solid #e3e9f1;border-radius:11px}.dashboard-guide h2{margin:0 0 17px;font-size:16px;color:#202b3d}.guide-step{display:flex;gap:14px;padding:14px;background:#f8fafc;border-radius:8px;margin-top:8px}.guide-number{width:28px;height:28px;display:grid;place-items:center;flex:none;border-radius:50%;background:#2f67e8;color:#fff;font-weight:700;font-size:12px}.guide-step strong{display:block;color:#273348;font-size:12px;margin:2px 0 5px}.guide-step span{color:#718096;font-size:11px;line-height:1.5}
+  .dashboard-mode .chat-head,.dashboard-mode .messages,.dashboard-mode .composer{display:none}.dashboard-mode .dashboard-home{display:block}
+  .sidebar-footer{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border);color:#e55353;font-size:11px;cursor:pointer}
+  @media(max-width:760px){.dashboard-home{padding:24px 16px}.dashboard-hero{display:block;padding:22px}.dashboard-hero .btn{margin-top:18px}.dashboard-stats,.dashboard-actions{grid-template-columns:1fr}}
+
+  /* Knowledge-console visual layer inspired by the reference project's workspace. */
+  :root{
+    --bg:#f4f6f5;
+    --panel:#ffffff;
+    --border:#dfe5e2;
+    --text:#17211f;
+    --sub:#56635f;
+    --muted:#87928d;
+    --primary:#0e7c66;
+    --primary-weak:#e2f2ed;
+    --accent:#f4b860;
+    --ink:#123b36;
+  }
+  body{font-family:"Trebuchet MS","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  .topbar{height:60px;flex-basis:60px;padding:0 22px;background:#fffdf9;border-bottom-color:#dfe5e2}
+  .brand{gap:10px;font-size:16px;letter-spacing:-.2px;color:var(--ink)}
+  .brand-dot{width:26px;height:26px;border-radius:9px;background:var(--ink);position:relative;box-shadow:4px 4px 0 var(--accent)}
+  .brand-dot::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:#fffdf9;left:9px;top:9px}
+  .tag{background:#edf5f2;color:var(--primary);border-radius:5px;font-weight:600}
+  .kb-switch{height:34px;border-color:#d7e3de;border-radius:7px;background:#f8fbf9;color:var(--ink)}
+  .kb-dot{background:#21a179;box-shadow:0 0 0 3px #dff3ea}
+  .search input{background:#f5f7f6;border-color:#e1e7e4;border-radius:7px}
+  .search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,124,102,.12)}
+  .icon-btn{border-color:#dfe5e2;border-radius:7px;background:#fffdf9}
+  .avatar-user{background:var(--ink);color:#fff;border-radius:9px}
+  .workspace{background:#f4f6f5}
+  .sidebar{width:252px;flex-basis:252px;background:#eef3f0;border-right-color:#d9e3de}
+  .sidebar-top{padding:18px 16px 10px}
+  .btn{border-radius:7px;font-weight:600}
+  .btn-primary{background:var(--ink);box-shadow:0 3px 0 #092a26}
+  .btn-primary:hover{background:#1b5049}
+  .sidebar-scroll{padding:0 12px 16px}
+  .nav-label{padding:18px 10px 7px;color:#82918b;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+  .nav-item{padding:9px 10px;border-radius:7px;color:#52635d}
+  .nav-item:hover{background:#e2ebe6}
+  .nav-item.active{background:#dceee8;color:var(--primary)}
+  .document-toolbar{padding:10px 10px 5px}
+  .document-count{color:#7d8c86}
+  .chip-btn{border-color:#d9e3de;border-radius:6px;background:#fffdf9}
+  .chip-btn:hover{background:#edf5f2}
+  .document-row{padding:8px 10px;border-radius:7px;margin:2px 0}
+  .document-row:hover{background:#e5eee9}
+  .document-name{color:#344740}
+  .document-status{color:#81908a}
+  .chat{background:#fffdf9}
+  .chat-head{height:56px;flex-basis:56px;padding:0 24px;border-bottom-color:#e2e8e4}
+  .chat-head .title{font-size:14px;font-weight:700;color:var(--ink)}
+  .messages{padding:30px 34px 12px;gap:22px;background:linear-gradient(180deg,#fffdf9 0%,#fbfcfa 100%)}
+  .msg{max-width:900px}
+  .avatar{border-radius:9px;background:#e6eeea;color:var(--ink)}
+  .msg.ai .avatar{background:var(--ink);color:#fff}
+  .bubble{line-height:1.85;border-radius:12px;font-size:14px}
+  .msg.ai .bubble{background:#f4f7f5;border-color:#e0e8e3;border-radius:4px 14px 14px 14px}
+  .msg.user .bubble{background:var(--ink);border-radius:14px 4px 14px 14px}
+  .composer{padding:14px 34px 24px;background:#fffdf9;border-top-color:#e2e8e4}
+  .composer-box{max-width:920px;border-color:#cedbd5;border-radius:13px;background:#fff;box-shadow:0 8px 22px rgba(18,59,54,.06)}
+  .composer-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,124,102,.1),0 8px 22px rgba(18,59,54,.06)}
+  .inspector{width:346px;flex-basis:346px;background:#f8faf8;border-left-color:#dfe7e2}
+  .inspector-head{height:56px;flex-basis:56px;padding:0 18px;border-bottom-color:#e1e8e3;color:var(--ink)}
+  .count{background:#dff1eb;color:var(--primary);border-radius:5px}
+  .sources{padding:16px}
+  .source-card{border-color:#dfe7e2;border-radius:8px;background:#fff;box-shadow:0 2px 8px rgba(18,59,54,.03)}
+  .source-card:hover{border-color:#a9cdbf;background:#fbfffd}
+  .source-card.active{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,124,102,.12)}
+  .idx{background:#dff1eb;color:var(--primary);border-radius:5px}
+  .source-card.active .idx{background:var(--primary)}
+  .score{color:#a96b17;background:#fff1d9}
+  .params{background:#f2f6f3;border-top-color:#dfe7e2}
+  .param-row input[type=range]{accent-color:var(--primary)}
+  @media (max-width:1080px){.inspector{top:60px}}
+  @media (max-width:760px){.messages{padding:18px 16px 8px}.composer{padding:10px 14px 16px}}
+
   /* 响应式 */
   @media (max-width:1080px){
     .inspector{
@@ -259,6 +355,89 @@
     .messages{padding:16px}
     .composer{padding:10px 12px 14px}
   }
+
+  /* Compact admin-console treatment matching the reference UI. */
+  :root{
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --border:#e4e9f0;
+    --text:#1b2435;
+    --sub:#526176;
+    --muted:#8793a5;
+    --primary:#2f67e8;
+    --primary-weak:#edf3ff;
+    --ink:#1b2435;
+  }
+  body{font-family:"Microsoft YaHei", "PingFang SC", sans-serif;background:#fff;color:var(--text);font-size:13px}
+  .topbar{height:52px;flex-basis:52px;padding:0 18px;background:#fff;border-bottom:1px solid var(--border)}
+  .topbar .brand{display:none}
+  .brand{font-size:14px;color:var(--text)}
+  .brand-dot{width:24px;height:24px;border-radius:4px;background:linear-gradient(135deg,#ff4b55 0 33%,#ffc83d 33% 66%,#42bf87 66%);box-shadow:none}
+  .brand-dot::after{width:6px;height:6px;left:9px;top:9px;background:#fff}
+  .tag{background:#f2f6ff;color:#3268df;border-radius:4px;font-size:11px}
+  .kb-switch{height:30px;border:0;background:#f8faff;border-radius:5px;color:#526176;font-size:12px}
+  .kb-dot{width:6px;height:6px;box-shadow:none;background:#36b37e}
+  .search input{width:220px;height:30px;background:#f8fafc;border-color:#e4e9f0;border-radius:5px;color:#526176}
+  .icon-btn{width:30px;height:30px;border-color:#e0e6ee;border-radius:5px;background:#fff;font-size:13px}
+  .avatar-user{width:30px;height:30px;border-radius:5px;background:#f1f4f8;color:#526176}
+  .workspace{background:#fff}
+  .sidebar{width:186px;flex-basis:186px;background:#fff;border-right:1px solid var(--border)}
+  .sidebar-brand{height:52px;display:flex;align-items:center;gap:9px;padding:0 28px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);white-space:nowrap}
+  .sidebar-brand-mark{width:18px;height:18px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#ff4b55 0 33%,#ffc83d 33% 66%,#42bf87 66%);border-radius:2px;font-size:13px}
+  .sidebar-top{padding:14px 14px 8px}
+  .btn{height:32px;border-radius:5px;font-size:12px;box-shadow:none}
+  .btn-primary{background:#2f67e8;box-shadow:none}
+  .btn-primary:hover{background:#2559d0}
+  .sidebar-scroll{padding:0 10px 12px}
+  .nav-label{padding:16px 10px 7px;color:#8490a2;font-size:10px;letter-spacing:.4px;text-transform:none;font-weight:600}
+  .nav-item{padding:8px 10px;border-radius:4px;color:#66758a;font-size:12px}
+  .nav-item:hover{background:#f5f7fb}
+  .nav-item.active{background:#edf3ff;color:#2f67e8}
+  .sidebar-note{padding:7px 10px;color:#9aa5b4;font-size:11px}
+  .document-toolbar{padding:9px 10px 4px}
+  .document-count{font-size:11px;color:#8a96a7}
+  .document-upload{height:26px;font-size:11px}
+  .document-row{padding:7px 10px;margin:1px 0;border-radius:4px;color:#526176;font-size:11px}
+  .document-row:hover{background:#f7f9fc}
+  .document-delete{color:#d55656;font-size:11px}
+  .document-status{font-size:10px;color:#99a3b0}
+  .chat{background:#fff}
+  .chat-head{height:44px;flex-basis:44px;padding:0 22px;border-bottom:1px solid var(--border);font-size:12px}
+  .chat-head .title{font-size:13px;color:#202b3d}
+  .chat-head .tag{background:#f2f6ff;color:#3268df}
+  .link-btn{color:#2f67e8;font-size:12px}
+  .messages{padding:24px 28px 8px;background:#fff;gap:16px}
+  .source-empty{padding:12px;color:#a0a9b5;font-size:13px}
+  .avatar{width:26px;height:26px;flex-basis:26px;border-radius:4px;background:#f0f3f8;color:#64738a;font-size:10px}
+  .msg.ai .avatar{background:#2f67e8}
+  .bubble{font-size:13px;line-height:1.75;padding:9px 12px}
+  .msg.ai .bubble{background:#f8fafc;border:1px solid #e8edf3;border-radius:4px 8px 8px 8px}
+  .msg.user .bubble{background:#2f67e8;border-radius:8px 4px 8px 8px}
+  .composer{padding:12px 28px 18px;background:#fff;border-top:1px solid var(--border)}
+  .composer-box{max-width:760px;border-color:#dbe3ec;border-radius:10px;box-shadow:0 2px 8px rgba(33,50,80,.04)}
+  .composer-box:focus-within{border-color:#8eaff4;box-shadow:0 0 0 3px rgba(47,103,232,.08)}
+  .composer textarea{font-size:13px}
+  .chip-btn{height:26px;border-color:#e0e6ee;border-radius:5px;color:#607087;background:#fff;font-size:11px}
+  .inspector{width:300px;flex-basis:300px;background:#fff;border-left:1px solid var(--border)}
+  .inspector-head{height:44px;flex-basis:44px;padding:0 18px;border-bottom:1px solid var(--border);font-size:13px;color:#202b3d}
+  .count{background:#eef3ff;color:#2f67e8;border-radius:4px}
+  .sources{padding:14px}
+  .source-card{border-color:#e5eaf1;border-radius:6px;padding:9px;margin-bottom:8px;box-shadow:none}
+  .source-card:hover{border-color:#b9cdf7;background:#fbfcff}
+  .source-card.active{border-color:#2f67e8;box-shadow:0 0 0 2px rgba(47,103,232,.1);background:#fbfcff}
+  .idx{background:#edf3ff;color:#2f67e8;border-radius:4px}
+  .source-card.active .idx{background:#2f67e8}
+  .source-title{font-size:12px;color:#334158}
+  .source-snippet{font-size:11px;line-height:1.6;color:#78869a}
+  .params{background:#fbfcfe;border-top-color:var(--border)}
+  .params summary{padding:11px 18px;font-size:12px;color:#526176}
+  .param-body{padding:0 18px 13px}
+  .param-row{font-size:11px}
+  .param-row label{color:#69788c}
+  .param-row .val{color:#2f67e8}
+  .param-row select{border-color:#e0e6ee;border-radius:5px;color:#718096}
+  @media (max-width:1080px){.inspector{top:52px;width:300px}.search input{width:170px}}
+  @media (max-width:760px){.sidebar{display:none}.messages{padding:16px}.composer{padding:10px 12px 14px}}
 </style>
 </head>
 <body>
@@ -290,6 +469,7 @@
 
     <!-- 左侧导航 -->
     <aside class="sidebar">
+      <div class="sidebar-brand"><div class="sidebar-brand-mark">▦</div><strong>RAG 智问</strong></div>
       <div class="sidebar-top">
         <button class="btn btn-primary btn-block" id="newChat">＋ 新建会话</button>
       </div>
@@ -300,9 +480,6 @@
         <div class="sidebar-note">会话历史列表与恢复接口尚未开发。</div>
 
         <div class="nav-label">知识库</div>
-        <div class="nav-item unavailable" title="知识库切换接口尚未开发"><span>🗂</span><span class="txt">全部知识库</span></div>
-        <div class="nav-item unavailable" title="知识库切换接口尚未开发"><span>📁</span><span class="txt">产品文档库</span></div>
-        <div class="nav-item unavailable" title="知识库切换接口尚未开发"><span>📁</span><span class="txt">运维手册库</span></div>
         <div class="nav-item" id="documentHeading"><span>📄</span><span class="txt">文档管理</span></div>
         <div class="document-toolbar">
           <span class="document-count" id="documentCount">0 个文档</span>
@@ -310,15 +487,32 @@
         </div>
         <div id="documentList"></div>
 
-        <div class="nav-label">工具</div>
-        <div class="nav-item unavailable" title="检索测试接口尚未开发"><span>🔍</span><span class="txt">检索测试</span></div>
-        <div class="nav-item unavailable" title="评测接口尚未开发"><span>📊</span><span class="txt">评测</span></div>
-        <div class="nav-item unavailable" title="运行参数配置接口尚未开发"><span>⚙️</span><span class="txt">设置</span></div>
       </div>
+      <div class="sidebar-footer" id="sidebarLogout">↪ &nbsp;退出登录</div>
     </aside>
 
     <!-- 中间对话区 -->
     <section class="chat">
+      <div class="dashboard-home" id="dashboardHome">
+        <div class="dashboard-home-inner">
+          <div class="breadcrumb"><span>⌂</span><span>›</span><strong>Dashboard</strong></div>
+          <div class="dashboard-hero">
+            <div><h1>Knowledge Assistant</h1><p>你的个人 AI 知识中心。上传文档，建立自己的知识库，并通过自然语言对话快速获得答案。</p></div>
+            <button class="btn btn-primary" id="dashboardUpload">＋ 上传文档</button>
+          </div>
+          <div class="dashboard-stats">
+            <div class="dashboard-stat"><div class="stat-icon blue">▣</div><div><strong id="dashboardDocumentCount">0</strong><span>Documents</span></div></div>
+            <div class="dashboard-stat"><div class="stat-icon indigo">▢</div><div><strong id="dashboardChatCount">0</strong><span>Chat Sessions</span></div></div>
+          </div>
+          <h2 class="dashboard-section-title">Quick Actions</h2>
+          <div class="dashboard-actions">
+            <button class="dashboard-action" id="dashboardDocuments" type="button" onclick="showDocuments()"><div class="action-icon blue">◫</div><h3>Manage Documents</h3><p>查看和管理已上传的文档</p></button>
+            <button class="dashboard-action" id="dashboardUploadCard"><div class="action-icon indigo">↥</div><h3>Upload Documents</h3><p>添加 PDF、DOCX、MD 或 TXT 文件</p></button>
+            <button class="dashboard-action" id="dashboardChat" type="button" onclick="showChat(); inputEl.focus()"><div class="action-icon purple">✦</div><h3>Start Chatting</h3><p>基于你的文档开始智能问答</p></button>
+          </div>
+          <div class="dashboard-guide"><h2>How It Works</h2><div class="guide-step"><div class="guide-number">1</div><div><strong>上传你的文档</strong><span>支持 PDF、TXT 和 Markdown 文件，系统会自动解析并建立索引。</span></div></div><div class="guide-step"><div class="guide-number">2</div><div><strong>向知识库提问</strong><span>用自然语言提问，答案会结合你的文档内容生成，并显示引用来源。</span></div></div></div>
+        </div>
+      </div>
       <div class="chat-head">
         <span class="title" id="conversationTitle">新会话</span>
         <span class="tag">我的文档库</span>
@@ -402,6 +596,7 @@ const hitHint = document.getElementById('hitHint');
 const emptyChat = document.getElementById('emptyChat');
 const conversationTitle = document.getElementById('conversationTitle');
 const documentList = document.getElementById('documentList');
+const chatShell = document.querySelector('.chat');
 let conversationId = Number(sessionStorage.getItem('conversationId')) || null;
 let latestSources = [];
 let lastQuestion = '';
@@ -552,6 +747,7 @@ async function apiRequest(path, options = {}) {
 async function loadDocuments() {
   try {
     const documents = await apiRequest('/documents');
+    document.getElementById('dashboardDocumentCount').textContent = String(documents.length);
     documentList.replaceChildren();
     document.getElementById('documentCount').textContent = `${documents.length} 个文档`;
     if (!documents.length) {
@@ -591,6 +787,23 @@ async function loadDocuments() {
     hitHint.textContent = error.message;
     return null;
   }
+}
+
+function showDashboard() {
+  chatShell.classList.add('dashboard-mode');
+  document.getElementById('dashboardHome').style.display = 'block';
+  document.querySelector('.chat-head').style.display = 'none';
+  document.querySelector('.messages').style.display = 'none';
+  document.querySelector('.composer').style.display = 'none';
+  document.getElementById('documentHeading').classList.remove('active');
+}
+
+function showChat() {
+  chatShell.classList.remove('dashboard-mode');
+  document.getElementById('dashboardHome').style.display = 'none';
+  document.querySelector('.chat-head').style.display = 'flex';
+  document.querySelector('.messages').style.display = 'flex';
+  document.querySelector('.composer').style.display = 'block';
 }
 
 async function checkBackendHealth() {
@@ -821,6 +1034,7 @@ document.getElementById('toggleInspector').addEventListener('click', () => {
   document.getElementById('inspector').classList.toggle('open');
 });
 async function showDocuments() {
+  showChat();
   document.getElementById('documentHeading').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   hitHint.textContent = '正在刷新文档列表…';
   const count = await loadDocuments();
@@ -832,6 +1046,14 @@ document.getElementById('documentHeading').addEventListener('click', showDocumen
 document.getElementById('documentHeading').addEventListener('dblclick', loadDocuments);
 document.getElementById('retrievalDetails').addEventListener('click', () => {
   document.getElementById('inspector').classList.add('open');
+});
+document.getElementById('dashboardUpload').addEventListener('click', () => fileInput.click());
+document.getElementById('dashboardUploadCard').addEventListener('click', () => fileInput.click());
+document.getElementById('dashboardDocuments').addEventListener('click', showDocuments);
+document.getElementById('dashboardChat').addEventListener('click', () => { showChat(); inputEl.focus(); });
+document.getElementById('kbSwitch').addEventListener('dblclick', showDashboard);
+document.getElementById('sidebarLogout').addEventListener('click', () => {
+  if (window.confirm('确定退出登录吗？')) redirectToLogin();
 });
 document.getElementById('userMenu').addEventListener('click', () => {
   if (window.confirm('确定退出登录吗？')) redirectToLogin();
@@ -852,6 +1074,7 @@ document.getElementById('exportChat').addEventListener('click', () => {
 
 renderSources([]);
 autoResize();
+showDashboard();
 </script>
 </body>
 </html>

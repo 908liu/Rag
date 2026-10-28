@@ -5,6 +5,7 @@ from chromadb.api.models.Collection import Collection
 from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 
 from app.core.config import settings
+from app.rag.metadata import ChunkRecord
 
 
 _client: chromadb.ClientAPI | None = None
@@ -67,6 +68,13 @@ def delete_document_chunks(user_id: int, document_id: int) -> None:
 
 
 def get_user_chunks(user_id: int) -> list[tuple[str, str]]:
+    return [
+        (record["metadata"]["filename"], record["text"])
+        for record in get_user_chunk_records(user_id)
+    ]
+
+
+def get_user_chunk_records(user_id: int) -> list[ChunkRecord]:
     collection = _get_collection()
     result = collection.get(
         where={"user_id": user_id},
@@ -75,7 +83,11 @@ def get_user_chunks(user_id: int) -> list[tuple[str, str]]:
     documents = result.get("documents") or []
     metadatas = result.get("metadatas") or []
     return [
-        (str(metadata["filename"]), text)
+        {
+            "text": str(text),
+            "metadata": metadata,
+            "distance": None,
+        }
         for text, metadata in zip(documents, metadatas)
         if (
             text is not None
@@ -86,6 +98,13 @@ def get_user_chunks(user_id: int) -> list[tuple[str, str]]:
 
 
 def search_chunks(user_id: int, question: str, limit: int = 5) -> list[tuple[str, str, float]]:
+    return [
+        (record["metadata"]["filename"], record["text"], record["distance"] or 0.0)
+        for record in search_chunk_records(user_id, question, limit)
+    ]
+
+
+def search_chunk_records(user_id: int, question: str, limit: int = 5) -> list[ChunkRecord]:
     collection = _get_collection()
     item_count = collection.count(where={"user_id": user_id})
     if item_count == 0:
@@ -104,8 +123,17 @@ def search_chunks(user_id: int, question: str, limit: int = 5) -> list[tuple[str
     if not documents or not metadatas or not distances:
         return []
 
-    matches: list[tuple[str, str, float]] = []
+    matches: list[ChunkRecord] = []
     for text, metadata, distance in zip(documents[0], metadatas[0], distances[0]):
-        if text is not None and metadata is not None and distance is not None:
-            matches.append((str(metadata["filename"]), text, float(distance)))
+        if (
+            text is not None
+            and metadata is not None
+            and metadata.get("user_id") == user_id
+            and distance is not None
+        ):
+            matches.append({
+                "text": str(text),
+                "metadata": metadata,
+                "distance": float(distance),
+            })
     return matches

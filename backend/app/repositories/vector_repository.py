@@ -12,7 +12,7 @@ __all__ = [
     "get_user_chunks",
     "search_chunks",
     "upsert_document_chunks",
-]from pathlib import Path
+]
 
 import chromadb
 from chromadb.api.models.Collection import Collection
