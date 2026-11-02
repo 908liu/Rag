@@ -19,6 +19,19 @@ class ApiKey(Base):
     name: Mapped[str] = mapped_column(String(128))
     key: Mapped[str] = mapped_column(String(64), unique=True, index=True, default=_generate_key)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # LLM Provider configuration
+    provider_name: Mapped[str] = mapped_column(String(64), default="custom")
+    llm_api_key: Mapped[str] = mapped_column(String(512), default="")
+    llm_base_url: Mapped[str] = mapped_column(String(512), default="")
+    llm_model: Mapped[str] = mapped_column(String(128), default="")
+
+    # Embedding configuration (optional, falls back to llm_api_key if empty)
+    embedding_api_key: Mapped[str] = mapped_column(String(512), default="")
+    embedding_base_url: Mapped[str] = mapped_column(String(512), default="")
+    embedding_model: Mapped[str] = mapped_column(String(128), default="")
+
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

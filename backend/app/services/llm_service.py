@@ -7,6 +7,7 @@ from pathlib import Path
 import httpx
 
 from app.core.config import settings
+from app.core.llm_provider import get_current_provider
 
 logger = logging.getLogger(__name__)
 
@@ -369,13 +370,16 @@ async def _complete(
     temperature: float,
     max_tokens: int | None = None,
 ) -> str:
-    if not settings.llm_api_key or not settings.llm_model:
-        raise LLMNotConfiguredError("请在 backend/.env 中配置 LLM_API_KEY 和 LLM_MODEL")
+    provider = get_current_provider()
+    if not provider.api_key or not provider.model:
+        raise LLMNotConfiguredError(
+            "请在 backend/.env 中或用户 API Key 设置中配置 LLM_API_KEY 和 LLM_MODEL"
+        )
 
-    url = f"{settings.llm_base_url.rstrip('/')}/chat/completions"
-    headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
+    url = f"{provider.base_url.rstrip('/')}/chat/completions"
+    headers = {"Authorization": f"Bearer {provider.api_key}"}
     payload = {
-        "model": settings.llm_model,
+        "model": provider.model,
         "messages": messages,
         "temperature": temperature,
     }
@@ -396,13 +400,16 @@ async def _stream_complete(
     temperature: float,
     max_tokens: int | None = None,
 ) -> AsyncIterator[str]:
-    if not settings.llm_api_key or not settings.llm_model:
-        raise LLMNotConfiguredError("请在 backend/.env 中配置 LLM_API_KEY 和 LLM_MODEL")
+    provider = get_current_provider()
+    if not provider.api_key or not provider.model:
+        raise LLMNotConfiguredError(
+            "请在 backend/.env 中或用户 API Key 设置中配置 LLM_API_KEY 和 LLM_MODEL"
+        )
 
-    url = f"{settings.llm_base_url.rstrip('/')}/chat/completions"
-    headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
+    url = f"{provider.base_url.rstrip('/')}/chat/completions"
+    headers = {"Authorization": f"Bearer {provider.api_key}"}
     payload: dict[str, object] = {
-        "model": settings.llm_model,
+        "model": provider.model,
         "messages": messages,
         "temperature": temperature,
         "stream": True,

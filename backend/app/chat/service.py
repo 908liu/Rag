@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.llm_provider import resolve_llm_provider, set_current_provider, reset_current_provider
 from app.models import User
 from app.repositories import chat_repository
 from app.schemas import ChatResponse, SourceResponse
@@ -27,20 +28,28 @@ async def answer_question(
     conversation = chat_repository.get_or_create_conversation(db, user.id, conversation_id)
     memory_context = await search_memories(user.id, question)
     graph = build_chat_graph(db, user.id, conversation.id)
-    start_time = time.monotonic()
-    result = await graph.ainvoke(
-        {
-            "user_id": user.id,
-            "conversation_id": conversation.id,
-            "question": question,
-            "search_query": question,
-            "retrieval_top_k": retrieval_top_k,
-            "retrieval_max_distance": retrieval_max_distance,
-            "memory_context": memory_context,
-            "web_search_enabled": settings.web_search_enabled,
-        }
-    )
-    elapsed = round(time.monotonic() - start_time, 2)
+
+    provider = resolve_llm_provider(db, user.id)
+    provider_token = set_current_provider(provider)
+    logger.info("LLM Provider | user_id=%s source=%s model=%s", user.id, provider.source, provider.model)
+
+    try:
+        start_time = time.monotonic()
+        result = await graph.ainvoke(
+            {
+                "user_id": user.id,
+                "conversation_id": conversation.id,
+                "question": question,
+                "search_query": question,
+                "retrieval_top_k": retrieval_top_k,
+                "retrieval_max_distance": retrieval_max_distance,
+                "memory_context": memory_context,
+                "web_search_enabled": settings.web_search_enabled,
+            }
+        )
+        elapsed = round(time.monotonic() - start_time, 2)
+    finally:
+        reset_current_provider(provider_token)
 
     await remember_turn(user.id, question, result["answer"])
 
@@ -66,9 +75,11 @@ async def stream_answer_question(
     usage_token, usage = start_token_usage_tracking()
     final_state: dict[str, object] = {}
 
+    provider = resolve_llm_provider(db, user.id)
+    provider_token = set_current_provider(provider)
     logger.info(
-        "开始流式问答 | user_id=%s conv_id=%s question=%.60s",
-        user.id, conversation.id, question,
+        "开始流式问答 | user_id=%s conv_id=%s provider=%s model=%s question=%.60s",
+        user.id, conversation.id, provider.source, provider.model, question,
     )
 
     start_time = time.monotonic()
@@ -117,4 +128,5 @@ async def stream_answer_question(
         message = str(error) if error.__class__.__name__ == "LLMNotConfiguredError" else "AI 服务调用失败，请检查模型配置和网络"
         yield {"type": "error", "message": message}
     finally:
+        reset_current_provider(provider_token)
         stop_token_usage_tracking(usage_token)
