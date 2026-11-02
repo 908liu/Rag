@@ -74,8 +74,17 @@ def list_documents(user_id: int, db: Session) -> list[Document]:
 
 
 def delete_document(document_id: int, user_id: int, db: Session) -> bool:
+    """删除文档及其关联的所有数据：向量索引、数据库记录、上传文件。
+
+    删除顺序：
+    1. 删除 ChromaDB 向量 chunks
+    2. 验证向量已全部删除
+    3. 删除 SQL 数据库记录
+    4. 删除磁盘上的上传文件
+    """
     document = document_repository.get_for_user(db, user_id, document_id)
     if document is None:
+        logger.warning("删除失败：文档 %d 不存在（用户 %d）", document_id, user_id)
         return False
 
     stored_path = Path(document.stored_path).resolve()
@@ -83,12 +92,45 @@ def delete_document(document_id: int, user_id: int, db: Session) -> bool:
     if not stored_path.is_relative_to(user_dir):
         raise ValueError("文档存储路径无效，已取消删除")
 
-    vector_repository.delete_document_chunks(user_id, document.id)
-    document_repository.delete_document(db, document)
+    filename = document.filename
+    logger.info(
+        "开始删除文档 #%d「%s」（用户 %d）",
+        document_id, filename, user_id,
+    )
 
+    # 1. 删除向量索引
+    before_count = vector_repository.count_document_chunks(user_id, document_id)
+    vector_repository.delete_document_chunks(user_id, document_id)
+    after_count = vector_repository.count_document_chunks(user_id, document_id)
+
+    if after_count > 0:
+        logger.error(
+            "向量删除不完整：文档 #%d 删除后仍有 %d 条 chunks（删除前 %d 条）",
+            document_id, after_count, before_count,
+        )
+        # 再试一次
+        vector_repository.delete_document_chunks(user_id, document_id)
+        after_count = vector_repository.count_document_chunks(user_id, document_id)
+        if after_count > 0:
+            logger.error(
+                "向量删除重试失败：文档 #%d 仍有 %d 条残留",
+                document_id, after_count,
+            )
+    else:
+        logger.info(
+            "向量删除成功：文档 #%d 删除了 %d 条 chunks",
+            document_id, before_count,
+        )
+
+    # 2. 删除数据库记录
+    document_repository.delete_document(db, document)
+    logger.info("数据库记录已删除：文档 #%d「%s」", document_id, filename)
+
+    # 3. 删除磁盘文件
     try:
         stored_path.unlink(missing_ok=True)
+        logger.info("磁盘文件已删除：%s", stored_path)
     except OSError:
-        logger.exception("Failed to remove uploaded file for document %s", document_id)
+        logger.exception("删除磁盘文件失败：%s", stored_path)
 
     return True

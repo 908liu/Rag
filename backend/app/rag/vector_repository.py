@@ -67,6 +67,21 @@ def delete_document_chunks(user_id: int, document_id: int) -> None:
     )
 
 
+def count_document_chunks(user_id: int, document_id: int) -> int:
+    """返回指定文档在 ChromaDB 中的 chunk 数量，用于删除后验证。"""
+    collection = _get_collection()
+    result = collection.get(
+        where={
+            "$and": [
+                {"user_id": user_id},
+                {"document_id": document_id},
+            ]
+        },
+        include=[],
+    )
+    return len(result.get("ids") or [])
+
+
 def get_user_chunks(user_id: int) -> list[tuple[str, str]]:
     return [
         (record["metadata"]["filename"], record["text"])
@@ -106,7 +121,12 @@ def search_chunks(user_id: int, question: str, limit: int = 5) -> list[tuple[str
 
 def search_chunk_records(user_id: int, question: str, limit: int = 5) -> list[ChunkRecord]:
     collection = _get_collection()
-    item_count = collection.count(where={"user_id": user_id})
+    try:
+        item_count = collection.count(where={"user_id": user_id})
+    except TypeError:
+        item_count = collection.count()
+    except Exception:
+        item_count = 0
     if item_count == 0:
         return []
 

@@ -1,4 +1,5 @@
 import logging
+import time
 from collections.abc import AsyncIterator
 
 from sqlalchemy.orm import Session
@@ -26,6 +27,7 @@ async def answer_question(
     conversation = chat_repository.get_or_create_conversation(db, user.id, conversation_id)
     memory_context = await search_memories(user.id, question)
     graph = build_chat_graph(db, user.id, conversation.id)
+    start_time = time.monotonic()
     result = await graph.ainvoke(
         {
             "user_id": user.id,
@@ -38,6 +40,7 @@ async def answer_question(
             "web_search_enabled": settings.web_search_enabled,
         }
     )
+    elapsed = round(time.monotonic() - start_time, 2)
 
     await remember_turn(user.id, question, result["answer"])
 
@@ -45,6 +48,7 @@ async def answer_question(
         answer=result["answer"],
         sources=[SourceResponse(**source) for source in result["sources"]],
         conversation_id=conversation.id,
+        elapsed_seconds=elapsed,
     )
 
 
@@ -61,6 +65,13 @@ async def stream_answer_question(
     graph = build_chat_graph(db, user.id, conversation.id)
     usage_token, usage = start_token_usage_tracking()
     final_state: dict[str, object] = {}
+
+    logger.info(
+        "开始流式问答 | user_id=%s conv_id=%s question=%.60s",
+        user.id, conversation.id, question,
+    )
+
+    start_time = time.monotonic()
 
     try:
         async for mode, chunk in graph.astream(
@@ -86,11 +97,18 @@ async def stream_answer_question(
             yield {"type": "status", "message": "正在整理本轮长期记忆…"}
         await remember_turn(user.id, question, str(final_state.get("answer", "")))
 
+        elapsed = round(time.monotonic() - start_time, 2)
+        logger.info(
+            "流式问答完成 | user_id=%s conv_id=%s elapsed=%.2fs",
+            user.id, conversation.id, elapsed,
+        )
+
         yield {
             "type": "done",
             "answer": final_state.get("answer", ""),
             "sources": final_state.get("sources", []),
             "conversation_id": conversation.id,
+            "elapsed_seconds": elapsed,
             "usage": usage.copy(),
             "usage_available": usage["total_tokens"] > 0,
         }

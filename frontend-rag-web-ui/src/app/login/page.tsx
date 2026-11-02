@@ -54,10 +54,10 @@ export default function LoginPage() {
         <div className="bg-white rounded-lg shadow-md p-8 space-y-6">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">
-              知识库助手
+              Welcome To RAG Web UI
             </h1>
             <p className="mt-2 text-sm text-gray-600">
-              登录后继续使用
+              Please sign in to continue
             </p>
           </div>
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
                   htmlFor="username"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  用户名
+                  Username
                 </label>
                 <input
                   id="username"
@@ -77,7 +77,7 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                   className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="请输入用户名"
+                  placeholder="Enter your username"
                 />
               </div>
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  密码
+                  Password
                 </label>
                 <input
                   id="password"
@@ -95,7 +95,7 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                   className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="请输入密码"
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "登录中..." : "登录"}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
@@ -120,7 +120,7 @@ export default function LoginPage() {
               href="/register"
               className="text-sm font-medium text-gray-600 hover:text-gray-500"
             >
-              还没有账户？立即注册
+              Don't have an account? Create one now
             </Link>
           </div>
         </div>

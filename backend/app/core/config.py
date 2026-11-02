@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     chroma_dir: Path = BACKEND_DIR / "data" / "chroma"
     chroma_collection: str = "knowledge_chunks"
     retrieval_max_distance: float = 0.72
-    retrieval_candidate_top_k: int = 20
+    retrieval_candidate_top_k: int = 60
     retrieval_final_top_k: int = 3
     llm_api_key: str = ""
     llm_base_url: str = "https://api.openai.com/v1"

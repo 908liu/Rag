@@ -1,11 +1,53 @@
+import logging
+import sys
 from contextlib import asynccontextmanager
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import models
 from app.api.v1 import router as api_router
+from app.core.config import BACKEND_DIR
 from app.db.session import Base, ensure_database_schema, engine
+
+
+def _setup_logging() -> None:
+    log_dir = BACKEND_DIR / "logs"
+    log_dir.mkdir(exist_ok=True)
+
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    # ── 文件日志（滚动，每个最多 10 MB，保留 5 个） ──
+    file_handler = RotatingFileHandler(
+        log_dir / "app.log", maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+    )
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    # ── 控制台日志 ──
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    root.addHandler(file_handler)
+    root.addHandler(console_handler)
+
+    # 抑制第三方库的调试日志
+    for lib in ("chromadb", "sqlalchemy", "httpx", "httpcore", "urllib3", "watchfiles"):
+        logging.getLogger(lib).setLevel(logging.WARNING)
+
+    logging.getLogger("app").setLevel(logging.DEBUG)
+    logging.getLogger(__name__).info("日志系统初始化完成 —— 日志文件：%s", log_dir / "app.log")
+
+
+_setup_logging()
 
 
 @asynccontextmanager

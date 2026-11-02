@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Book, MessageSquare, LogOut, Menu } from "lucide-react";
+import { Book, MessageSquare, LogOut, Menu, User, BarChart3 } from "lucide-react";
 import Breadcrumb from "@/components/ui/breadcrumb";
 
 export default function DashboardLayout({
@@ -30,6 +30,8 @@ export default function DashboardLayout({
   const navigation = [
     { name: "Knowledge Base", href: "/dashboard/knowledge", icon: Book },
     { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
+    { name: "Evaluation", href: "/dashboard/evaluation", icon: BarChart3 },
+    { name: "API Keys", href: "/dashboard/api-keys", icon: User },
   ];
 
   return (
@@ -102,7 +104,7 @@ export default function DashboardLayout({
               className="flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors duration-200"
             >
               <LogOut className="mr-3 h-4 w-4" />
-              退出登录
+              Sign out
             </button>
           </div>
         </div>
@@ -131,6 +133,11 @@ export const dashboardConfig = {
       title: "Chat",
       href: "/dashboard/chat",
       icon: "messageSquare",
+    },
+    {
+      title: "API Keys",
+      href: "/dashboard/api-keys",
+      icon: "key",
     },
   ],
 };

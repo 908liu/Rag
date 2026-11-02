@@ -118,10 +118,7 @@ export default function APIKeysPage() {
   // 删除 API Key
   const deleteAPIKey = async (id: number) => {
     try {
-      const response = await api.delete(`/api/api-keys/${id}`);
-
-      if (!response.ok) throw new Error("Failed to delete API key");
-
+      await api.delete(`/api/api-keys/${id}`);
       setApiKeys(apiKeys.filter((key) => key.id !== id));
       toast({
         title: "Success",
@@ -139,7 +136,7 @@ export default function APIKeysPage() {
   // 更新 API Key 状态
   const toggleAPIKeyStatus = async (id: number, currentStatus: boolean) => {
     try {
-      const response = await api.put(`/api/api-keys/${id}`, {
+      await api.put(`/api/api-keys/${id}`, {
         is_active: !currentStatus,
       });
 

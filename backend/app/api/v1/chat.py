@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db
 from app.models import User
-from app.schemas import ChatRequest, ChatResponse
+from app.schemas import ChatRequest, ChatResponse, ConversationResponse
 from app.chat.service import answer_question, stream_answer_question
+from app.repositories import chat_repository
 from app.services.llm_service import LLMNotConfiguredError
 
 
@@ -24,6 +25,43 @@ def encode_sse(event: dict[str, object]) -> str:
 async def stream_events(events: AsyncIterator[dict[str, object]]) -> AsyncIterator[str]:
     async for event in events:
         yield encode_sse(event)
+
+
+# ---------------------------------------------------------------------------
+#  Conversation CRUD
+# ---------------------------------------------------------------------------
+
+@router.get("/conversations", response_model=list[ConversationResponse])
+def list_conversations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[ConversationResponse]:
+    conversations = chat_repository.list_conversations(db, current_user.id)
+    return [ConversationResponse.model_validate(c) for c in conversations]
+
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationResponse)
+def get_conversation(
+    conversation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ConversationResponse:
+    conversation = chat_repository.get_conversation(db, current_user.id, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return ConversationResponse.model_validate(conversation)
+
+
+@router.delete("/conversations/{conversation_id}")
+def delete_conversation(
+    conversation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
+    deleted = chat_repository.delete_conversation(db, current_user.id, conversation_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"status": "deleted"}
 
 
 @router.post("/query", response_model=ChatResponse)

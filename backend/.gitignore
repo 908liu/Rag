@@ -1,7 +1,3 @@
-.env
-__pycache__/
-*.py[cod]
-uploads/
-data/*.db
-data/chroma/
-../venv/
+# Backend-specific ignores (root .gitignore covers common patterns)
+logs/
+*.log

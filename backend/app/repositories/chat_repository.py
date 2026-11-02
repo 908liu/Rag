@@ -1,5 +1,5 @@
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import select, delete
+from sqlalchemy.orm import Session, selectinload
 
 from app.models import ChatMessage, Conversation
 
@@ -19,6 +19,36 @@ def get_or_create_conversation(db: Session, user_id: int, conversation_id: int |
             return conversation
 
     return create_conversation(db, user_id, title or "新会话")
+
+
+def list_conversations(db: Session, user_id: int) -> list[Conversation]:
+    return list(
+        db.scalars(
+            select(Conversation)
+            .where(Conversation.user_id == user_id)
+            .options(selectinload(Conversation.messages))
+            .order_by(Conversation.updated_at.desc())
+        )
+    )
+
+
+def get_conversation(db: Session, user_id: int, conversation_id: int) -> Conversation | None:
+    return db.scalar(
+        select(Conversation)
+        .where(Conversation.id == conversation_id, Conversation.user_id == user_id)
+        .options(selectinload(Conversation.messages))
+    )
+
+
+def delete_conversation(db: Session, user_id: int, conversation_id: int) -> bool:
+    result = db.execute(
+        delete(Conversation).where(
+            Conversation.id == conversation_id,
+            Conversation.user_id == user_id,
+        )
+    )
+    db.commit()
+    return result.rowcount > 0
 
 
 def get_recent_messages(

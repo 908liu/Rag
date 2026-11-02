@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from typing import TypedDict
 
@@ -6,6 +7,8 @@ from langgraph.graph import END, START, StateGraph
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 from app.repositories import chat_repository
 from app.repositories import document_repository
 from app.rag.reranker import rerank
@@ -86,11 +89,13 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
             conversation_id=conversation_id,
             limit=6,
         )
+        logger.info("加载记忆 | user_id=%s conv_id=%s history=%d条", user_id, conversation_id, len(history))
         return {"history": history}
 
     async def classify(state: ChatState) -> dict[str, str | bool]:
         emit_status(state, "正在识别问题类型…")
         intent = await classify_intent(state["question"], state.get("history", []))
+        logger.info("意图分类: %s → %s", state["question"][:60], intent)
         return {
             "intent": intent,
             "is_follow_up": intent == "follow_up",
@@ -100,6 +105,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
 
     def route_by_intent(state: ChatState) -> str:
         intent = state.get("intent", "knowledge_question")
+        logger.info("路由决策 | intent=%s", intent)
         if intent == "document_summary":
             return "summarize_documents"
         if intent in {"knowledge_question", "follow_up", "professional_question"}:
@@ -118,6 +124,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
             state["search_query"],
             limit=settings.retrieval_candidate_top_k,
         )
+        logger.info("检索完成 | query=%.40s candidates=%d", state["search_query"], len(matches))
         return {
             "matches": matches,
             "retrieval_attempts": attempt,
@@ -137,6 +144,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
             relevant,
             limit=state.get("retrieval_top_k", settings.retrieval_final_top_k),
         )
+        logger.info("相关性评估 | 过滤后=%d → 重排后=%d", len(relevant), len(reranked))
         return {"matches": reranked}
 
     async def react_decide(state: ChatState) -> dict[str, str]:
@@ -146,6 +154,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
             state["search_query"],
             state.get("matches", []),
         )
+        logger.info("RAG决策 | action=%s matches=%d", action, len(state.get("matches", [])))
         action_messages = {
             "answer": "证据可用，正在组织回答…",
             "retry": "准备改写检索词并重试…",
@@ -157,11 +166,13 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
     async def rewrite_query(state: ChatState) -> dict[str, str | bool]:
         emit_status(state, "正在结合对话上下文改写检索词…")
         query = await rewrite_search_query(state["search_query"], state.get("history", []))
+        logger.info("查询改写 | 原查询=%.40s → 改写=%.40s", state["search_query"], query)
         return {"search_query": query, "was_rewritten": True}
 
     async def web_search(state: ChatState) -> dict[str, object]:
         emit_status(state, "内部资料不足，正在搜索网页…")
         results = await search_web(state["question"])
+        logger.info("联网搜索 | question=%.40s results=%d", state["question"], len(results))
         if not results:
             return {"web_results": [], "answer": NO_RELEVANT_ANSWER, "sources": []}
 
@@ -178,6 +189,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
     async def answer(state: ChatState) -> dict[str, object]:
         emit_status(state, "正在根据文档证据生成回答…")
         matches = state["matches"]
+        logger.info("生成RAG回答 | question=%.40s sources=%d", state["question"], len(matches))
         context = "\n\n".join(
             f"来源：{filename}\n内容：{excerpt}" for filename, excerpt, _ in matches
         )
@@ -208,6 +220,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
     async def summarize_documents(state: ChatState) -> dict[str, object]:
         emit_status(state, "正在整理文档内容并生成总结…")
         documents = document_repository.list_for_user(db, user_id)
+        logger.info("文档总结 | user_id=%s documents=%d question=%.40s", user_id, len(documents), state["question"])
         seen_texts: set[str] = set()
         context_parts: list[str] = []
         sources: list[dict[str, str]] = []
@@ -246,16 +259,19 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
         return {"answer": response, "sources": sources}
 
     def greet(_: ChatState) -> dict[str, object]:
+        logger.info("问候节点 | user_id=%s", user_id)
         return {
             "answer": "你好！我可以帮你查询和理解已上传的文档。",
             "sources": [],
         }
 
     def no_relevant_documents(_: ChatState) -> dict[str, object]:
+        logger.info("无相关文档 | user_id=%s", user_id)
         return {"answer": NO_RELEVANT_ANSWER, "sources": []}
 
     async def general_answer(state: ChatState) -> dict[str, object]:
         emit_status(state, "正在生成回答…")
+        logger.info("通用问答 | question=%.40s", state["question"])
         if state.get("streaming"):
             response = await collect_stream(
                 generate_general_answer_stream(
@@ -280,6 +296,7 @@ def build_chat_graph(db: Session, user_id: int, conversation_id: int):
             state["question"],
             state["answer"],
         )
+        logger.info("保存对话 | user_id=%s conv_id=%s answer=%.60s", user_id, conversation_id, state["answer"])
         return {}
 
     graph = StateGraph(ChatState)

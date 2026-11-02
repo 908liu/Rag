@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileIcon, defaultStyles } from "react-file-icon";
-import { ArrowRight, Plus, Settings, Trash2, Search } from "lucide-react";
+import { ArrowRight, Plus, Settings, Trash2, Search, X } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -55,17 +55,50 @@ export default function KnowledgeBasePage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this knowledge base?"))
+    if (!confirm("确定删除该知识库中的所有文档？"))
       return;
     try {
-      await api.delete(`/api/knowledge-base/${id}`);
+      // 删除所有文档
+      const kb = knowledgeBases.find(k => k.id === id);
+      if (kb) {
+        for (const doc of kb.documents) {
+          await api.delete(`/api/knowledge-base/${doc.id}`);
+        }
+      }
       setKnowledgeBases((prev) => prev.filter((kb) => kb.id !== id));
       toast({
-        title: "Success",
-        description: "Knowledge base deleted successfully",
+        title: "成功",
+        description: "知识库已删除",
       });
     } catch (error) {
       console.error("Failed to delete knowledge base:", error);
+      if (error instanceof ApiError) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDeleteDocument = async (docId: number) => {
+    if (!confirm("确定删除该文档？"))
+      return;
+    try {
+      await api.delete(`/api/knowledge-base/${docId}`);
+      setKnowledgeBases((prev) =>
+        prev.map((kb) => ({
+          ...kb,
+          documents: kb.documents.filter((d) => d.id !== docId),
+        }))
+      );
+      toast({
+        title: "成功",
+        description: "文档已删除",
+      });
+    } catch (error) {
+      console.error("Failed to delete document:", error);
       if (error instanceof ApiError) {
         toast({
           title: "Error",
@@ -89,11 +122,11 @@ export default function KnowledgeBasePage() {
             </p>
           </div>
           <Link
-            href="/dashboard/knowledge/new"
+            href="/dashboard/knowledge/1/upload"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="mr-2 h-4 w-4" />
-            New Knowledge Base
+            上传文档
           </Link>
         </div>
 
@@ -144,8 +177,19 @@ export default function KnowledgeBasePage() {
                     {kb.documents.slice(0, 9).map((doc) => (
                       <div
                         key={doc.id}
-                        className="flex flex-col items-center gap-2 p-2 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors w-[150px] h-[150px] justify-center"
+                        className="flex flex-col items-center gap-2 p-2 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors w-[150px] h-[150px] justify-center relative group"
                       >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleDeleteDocument(doc.id);
+                          }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive/80 hover:bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="删除文档"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                         <div className="w-8 h-8 mb-2">
                           {doc.content_type.toLowerCase().includes("pdf") ? (
                             <FileIcon extension="pdf" {...defaultStyles.pdf} />

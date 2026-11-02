@@ -16,18 +16,7 @@ const Breadcrumb = () => {
       const isLast = index === paths.length - 1;
 
       // Handle dynamic routes with [id]
-      const labels: Record<string, string> = {
-        dashboard: "工作台",
-        knowledge: "知识库",
-        chat: "对话",
-        new: "新建",
-        upload: "上传文档",
-        "api-keys": "API 密钥",
-        "test-retrieval": "检索测试",
-      };
-      const displayLabel = path.match(/^\[.*\]$/)
-        ? "详情"
-        : labels[path] || label;
+      const displayLabel = path.match(/^\[.*\]$/) ? "Details" : label;
 
       return {
         href,

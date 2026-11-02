@@ -26,3 +26,4 @@ class User(Base):
         cascade="all, delete-orphan",
     )
     messages: Mapped[list["ChatMessage"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="owner", cascade="all, delete-orphan")  # noqa: F821

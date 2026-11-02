@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import AsyncIterator
 from contextvars import ContextVar, Token
 from pathlib import Path
@@ -6,6 +7,8 @@ from pathlib import Path
 import httpx
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 RAG_REACT_DECISION_MAX_TOKENS = 24
@@ -337,7 +340,28 @@ async def classify_intent(question: str, history: list[dict[str, str]]) -> str:
         "general_question",
         "professional_question",
     }
-    return intent if intent in allowed_intents else "knowledge_question"
+    if intent not in allowed_intents:
+        intent = "knowledge_question"
+
+    # 硬判断兜底：如果问题明显不是问候/闲聊，不允许 LLM 判为 greeting
+    _greeting_patterns = (
+        "你好", "您好", "嗨", "哈喽", "早上好", "下午好", "晚上好",
+        "hello", "hi", "hey", "good morning", "good afternoon",
+        "谢谢", "感谢", "再见", "拜拜", "bye",
+    )
+    _question = question.strip()
+    _is_obvious_greeting = (
+        len(_question) <= 8
+        and any(p in _question.lower() for p in _greeting_patterns)
+    )
+    if intent == "greeting" and not _is_obvious_greeting and len(_question) >= 2:
+        logger.warning(
+            "意图分类兜底修正 | question=%.40s LLM判定=greeting → 修正为knowledge_question",
+            _question,
+        )
+        intent = "knowledge_question"
+
+    return intent
 
 
 async def _complete(

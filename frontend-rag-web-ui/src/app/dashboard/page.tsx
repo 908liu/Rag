@@ -38,11 +38,14 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const kbData = await api.get("/api/knowledge-base");
+        const [kbData, chatData] = await Promise.all([
+          api.get("/api/knowledge-base"),
+          api.get("/api/chat"),
+        ]);
 
         setStats({
           knowledgeBases: kbData.length,
-          chats: 0,
+          chats: chatData.length,
         });
       } catch (error) {
         console.error("Failed to fetch stats:", error);
@@ -72,7 +75,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <a
-              href="/dashboard/knowledge"
+              href="/dashboard/knowledge/new"
               className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -136,7 +139,7 @@ export default function DashboardPage() {
         </h2>
         <div className="grid gap-6 md:grid-cols-3 mb-12">
           <a
-            href="/dashboard/knowledge"
+            href="/dashboard/knowledge/new"
             className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 shadow-sm hover:shadow-md transition-all hover:border-blue-500 dark:hover:border-blue-500"
           >
             <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-4 mb-4">
@@ -202,7 +205,7 @@ export default function DashboardPage() {
                   identify its purpose.
                 </p>
                 <a
-                  href="/dashboard/knowledge"
+                  href="/dashboard/knowledge/new"
                   className="mt-4 inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
                 >
                   Create now

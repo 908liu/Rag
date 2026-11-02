@@ -8,13 +8,51 @@ import { api, ApiError } from "@/lib/api";
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
-  const [validationErrors, setValidationErrors] = useState({ password: "", confirmPassword: "" });
+  const [validationErrors, setValidationErrors] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-  const validatePassword = (password: string) => {
-    if (password.length < 3) {
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       setValidationErrors((prev) => ({
         ...prev,
-        password: "Password must be at least 3 characters long",
+        email: "Please enter a valid email address",
+      }));
+      return false;
+    }
+    setValidationErrors((prev) => ({ ...prev, email: "" }));
+    return true;
+  };
+
+  const validatePassword = (password: string) => {
+    if (password.length < 8) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: "Password must be at least 8 characters long",
+      }));
+      return false;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: "Password must contain at least one uppercase letter",
+      }));
+      return false;
+    }
+    if (!/[a-z]/.test(password)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: "Password must contain at least one lowercase letter",
+      }));
+      return false;
+    }
+    if (!/[0-9]/.test(password)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        password: "Password must contain at least one number",
       }));
       return false;
     }
@@ -25,13 +63,16 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    setValidationErrors({ password: "", confirmPassword: "" });
+    setValidationErrors({ email: "", password: "", confirmPassword: "" });
 
     const formData = new FormData(e.currentTarget);
     const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
+    // Validate email and password
+    const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
 
     if (password !== confirmPassword) {
@@ -42,12 +83,16 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!isPasswordValid) {
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
     try {
-      await api.post("/api/auth/register", { username, password });
+      await api.post("/api/auth/register", {
+        username,
+        email,
+        password,
+      });
 
       router.push("/login");
     } catch (err) {
@@ -65,10 +110,10 @@ export default function RegisterPage() {
         <div className="bg-white rounded-lg shadow-md p-8 space-y-6">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900">
-              创建知识库账户
+              Welcome To RAG Web UI
             </h1>
             <p className="mt-2 text-sm text-gray-600">
-              注册后开始管理你的文档
+              Create your account to get started
             </p>
           </div>
 
@@ -79,7 +124,7 @@ export default function RegisterPage() {
                   htmlFor="username"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  用户名
+                  Username
                 </label>
                 <input
                   id="username"
@@ -87,8 +132,35 @@ export default function RegisterPage() {
                   type="text"
                   required
                   className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="请输入用户名"
+                  placeholder="Enter your username"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className={`mt-1 block w-full px-3 py-2 rounded-md border ${
+                    validationErrors.email
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  } shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                  placeholder="Enter your email"
+                  onChange={(e) => validateEmail(e.target.value)}
+                />
+                {validationErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -96,7 +168,7 @@ export default function RegisterPage() {
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  密码
+                  Password
                 </label>
                 <input
                   id="password"
@@ -108,7 +180,7 @@ export default function RegisterPage() {
                       ? "border-red-300"
                       : "border-gray-300"
                   } shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                  placeholder="请输入密码"
+                  placeholder="Create a password"
                   onChange={(e) => validatePassword(e.target.value)}
                 />
                 {validationErrors.password && (
@@ -123,7 +195,7 @@ export default function RegisterPage() {
                   htmlFor="confirmPassword"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  确认密码
+                  Confirm Password
                 </label>
                 <input
                   id="confirmPassword"
@@ -135,7 +207,7 @@ export default function RegisterPage() {
                       ? "border-red-300"
                       : "border-gray-300"
                   } shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500`}
-                  placeholder="请再次输入密码"
+                  placeholder="Confirm your password"
                 />
                 {validationErrors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">
@@ -155,7 +227,7 @@ export default function RegisterPage() {
               type="submit"
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
-              注册
+              Create Account
             </button>
           </form>
 
@@ -164,7 +236,7 @@ export default function RegisterPage() {
               href="/login"
               className="text-sm font-medium text-gray-600 hover:text-gray-500"
             >
-              已有账户？返回登录
+              Already have an account? Sign in
             </Link>
           </div>
         </div>
