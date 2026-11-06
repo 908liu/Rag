@@ -56,6 +56,14 @@ def touch_last_used(db: Session, api_key: ApiKey) -> None:
     db.commit()
 
 
+def count_for_user(db: Session, user_id: int) -> int:
+    """Return the number of API keys owned by a user."""
+    from sqlalchemy import func
+    return db.scalar(
+        select(func.count(ApiKey.id)).where(ApiKey.user_id == user_id)
+    ) or 0
+
+
 def delete(db: Session, api_key: ApiKey) -> None:
     db.delete(api_key)
     db.commit()

@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 
 from app.core.config import settings
-from app.core.llm_provider import get_current_provider
+from app.core.llm_provider import get_current_provider, LLMNotConfiguredError
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,7 @@ def _record_token_usage(usage: object) -> None:
             counter[key] += value
 
 
-class LLMNotConfiguredError(RuntimeError):
-    pass
+# LLMNotConfiguredError is imported from app.core.llm_provider
 
 
 async def generate_answer(
@@ -373,7 +372,7 @@ async def _complete(
     provider = get_current_provider()
     if not provider.api_key or not provider.model:
         raise LLMNotConfiguredError(
-            "请在 backend/.env 中或用户 API Key 设置中配置 LLM_API_KEY 和 LLM_MODEL"
+            "未配置 LLM API Key。请在前端「API Keys」页面添加你的大模型密钥后重试。"
         )
 
     url = f"{provider.base_url.rstrip('/')}/chat/completions"
@@ -403,7 +402,7 @@ async def _stream_complete(
     provider = get_current_provider()
     if not provider.api_key or not provider.model:
         raise LLMNotConfiguredError(
-            "请在 backend/.env 中或用户 API Key 设置中配置 LLM_API_KEY 和 LLM_MODEL"
+            "未配置 LLM API Key。请在前端「API Keys」页面添加你的大模型密钥后重试。"
         )
 
     url = f"{provider.base_url.rstrip('/')}/chat/completions"

@@ -180,18 +180,34 @@ export default function APIKeysPage() {
     setIsDialogOpen(true);
   };
 
-  const openEdit = (key: APIKey) => {
+  const openEdit = async (key: APIKey) => {
     setEditingKey(key);
-    setFormName(key.name);
-    setFormProvider(key.provider_name || "custom");
-    setFormApiKey(key.llm_api_key);
-    setFormBaseUrl(key.llm_base_url);
-    setFormModel(key.llm_model);
-    setFormIsDefault(key.is_default);
-    setFormIsActive(key.is_active);
-    setFormEmbeddingApiKey(key.embedding_api_key);
-    setFormEmbeddingBaseUrl(key.embedding_base_url);
-    setFormEmbeddingModel(key.embedding_model);
+    try {
+      // Fetch full detail to get unmasked keys for editing
+      const detail = await api.get(`/api/api-keys/${key.id}`);
+      setFormName(detail.name);
+      setFormProvider(detail.provider_name || "custom");
+      setFormApiKey(detail.llm_api_key || "");
+      setFormBaseUrl(detail.llm_base_url || "");
+      setFormModel(detail.llm_model || "");
+      setFormIsDefault(detail.is_default);
+      setFormIsActive(detail.is_active);
+      setFormEmbeddingApiKey(detail.embedding_api_key || "");
+      setFormEmbeddingBaseUrl(detail.embedding_base_url || "");
+      setFormEmbeddingModel(detail.embedding_model || "");
+    } catch {
+      // Fallback to masked data if detail fetch fails
+      setFormName(key.name);
+      setFormProvider(key.provider_name || "custom");
+      setFormApiKey("");
+      setFormBaseUrl(key.llm_base_url || "");
+      setFormModel(key.llm_model || "");
+      setFormIsDefault(key.is_default);
+      setFormIsActive(key.is_active);
+      setFormEmbeddingApiKey("");
+      setFormEmbeddingBaseUrl(key.embedding_base_url || "");
+      setFormEmbeddingModel(key.embedding_model || "");
+    }
     setIsDialogOpen(true);
   };
 
@@ -244,18 +260,21 @@ export default function APIKeysPage() {
 
     try {
       if (editingKey) {
-        const data = await api.put(`/api/api-keys/${editingKey.id}`, payload);
-        setApiKeys(apiKeys.map((k) => (k.id === editingKey.id ? data : k)));
+        await api.put(`/api/api-keys/${editingKey.id}`, payload);
         toast({ title: "Success", description: "API Key 已更新" });
       } else {
-        const data = await api.post("/api/api-keys", payload);
-        setApiKeys([data, ...apiKeys]);
-        toast({ title: "Success", description: "API Key 创建成功" });
+        const created = await api.post("/api/api-keys", payload);
+        toast({
+          title: "Provider 创建成功",
+          description: `LLM Key: ${created.llm_api_key.slice(0, 8)}… 请妥善保存`,
+        });
       }
       setIsDialogOpen(false);
       resetForm();
-    } catch {
-      toast({ title: "Error", description: "操作失败", variant: "destructive" });
+      // Re-fetch list to get masked versions
+      await fetchAPIKeys();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "操作失败", variant: "destructive" });
     } finally {
       setIsCreating(false);
     }
@@ -265,7 +284,7 @@ export default function APIKeysPage() {
 
   const setDefault = async (id: number) => {
     try {
-      const data = await api.post(`/api/api-keys/${id}/set-default`);
+      await api.post(`/api/api-keys/${id}/set-default`);
       setApiKeys(
         apiKeys.map((k) =>
           k.id === id
@@ -274,8 +293,8 @@ export default function APIKeysPage() {
         )
       );
       toast({ title: "Success", description: "已设为默认 Provider" });
-    } catch {
-      toast({ title: "Error", description: "设置失败", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "设置失败", variant: "destructive" });
     }
   };
 
@@ -286,8 +305,8 @@ export default function APIKeysPage() {
       await api.delete(`/api/api-keys/${id}`);
       setApiKeys(apiKeys.filter((key) => key.id !== id));
       toast({ title: "Success", description: "API Key 已删除" });
-    } catch {
-      toast({ title: "Error", description: "删除失败", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "删除失败", variant: "destructive" });
     }
   };
 
@@ -299,8 +318,8 @@ export default function APIKeysPage() {
       setApiKeys(
         apiKeys.map((k) => (k.id === id ? { ...k, is_active: !current } : k))
       );
-    } catch {
-      toast({ title: "Error", description: "更新失败", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "更新失败", variant: "destructive" });
     }
   };
 

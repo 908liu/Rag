@@ -11,7 +11,7 @@ from app.models import User
 from app.schemas import ChatRequest, ChatResponse, ConversationResponse
 from app.chat.service import answer_question, stream_answer_question
 from app.repositories import chat_repository
-from app.services.llm_service import LLMNotConfiguredError
+from app.core.llm_provider import LLMNotConfiguredError
 
 
 router = APIRouter(prefix="/chat", tags=["chat"])

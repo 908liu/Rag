@@ -37,6 +37,7 @@ function backendUrl(path: string, method: string = "GET"): string {
   // API Keys
   if (path === "/api/api-keys") return `${BACKEND_URL}/api/v1/api-keys`;
   if (/^\/api\/api-keys\/\d+$/.test(path)) return `${BACKEND_URL}${path.replace("/api/", "/api/v1/")}`;
+  if (/^\/api\/api-keys\/\d+\/set-default$/.test(path)) return `${BACKEND_URL}${path.replace("/api/", "/api/v1/")}`;
 
   // Evaluation datasets
   if (path === "/api/evaluation/overview") return `${BACKEND_URL}/api/v1/evaluation/overview`;

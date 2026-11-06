@@ -62,6 +62,33 @@ def ensure_database_schema() -> None:
 
                 connection.execute(text("CREATE INDEX IF NOT EXISTS ix_chat_messages_conversation_id ON chat_messages (conversation_id)"))
 
+        # ── api_keys migration: add columns that may be missing from older DB ──
+        if "api_keys" in tables:
+            api_key_columns = {col["name"] for col in inspector.get_columns("api_keys")}
+
+            api_key_additions: list[tuple[str, str]] = []
+            if "is_default" not in api_key_columns:
+                api_key_additions.append(("is_default", "BOOLEAN DEFAULT 0"))
+            if "provider_name" not in api_key_columns:
+                api_key_additions.append(("provider_name", "VARCHAR(64) DEFAULT 'custom'"))
+            if "llm_api_key" not in api_key_columns:
+                api_key_additions.append(("llm_api_key", "VARCHAR(512) DEFAULT ''"))
+            if "llm_base_url" not in api_key_columns:
+                api_key_additions.append(("llm_base_url", "VARCHAR(512) DEFAULT ''"))
+            if "llm_model" not in api_key_columns:
+                api_key_additions.append(("llm_model", "VARCHAR(128) DEFAULT ''"))
+            if "embedding_api_key" not in api_key_columns:
+                api_key_additions.append(("embedding_api_key", "VARCHAR(512) DEFAULT ''"))
+            if "embedding_base_url" not in api_key_columns:
+                api_key_additions.append(("embedding_base_url", "VARCHAR(512) DEFAULT ''"))
+            if "embedding_model" not in api_key_columns:
+                api_key_additions.append(("embedding_model", "VARCHAR(128) DEFAULT ''"))
+            if "last_used_at" not in api_key_columns:
+                api_key_additions.append(("last_used_at", "DATETIME"))
+
+            for col_name, col_type in api_key_additions:
+                connection.execute(text(f"ALTER TABLE api_keys ADD COLUMN {col_name} {col_type}"))
+
 
 def get_db():
     db = SessionLocal()
